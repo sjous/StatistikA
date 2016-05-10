@@ -1,0 +1,73 @@
+---
+title: "Aufbereitung des ESS-Datensatzes"
+author: "Sarah Thiesen"
+date: "09.05.2016"
+output: pdf_document
+---
+
+\section{Daten einlesen}
+
+Original-Datensatz und Beschreibungen der Variablen einlesen
+```{r, message = FALSE, warning = FALSE}
+library(foreign)
+ess <- read.dta("/home/sarah/Dropbox/Uni/ESS7DE.dta")
+var.labels <- data.frame(variable = names(ess), description = attr(ess,"var.labels"))
+```
+
+In Stata aufbereiteten Datensatz einlesen
+```{r, message = FALSE, warning = FALSE}
+library(readstata13)
+essStata <- read.dta13("/home/sarah/Dropbox/Uni/ESS-StatsA.dta")
+```
+
+\section{Nur Einheimische im Datensatz behalten}
+```{r, message = FALSE, warning = FALSE}
+library(dplyr)
+ess <- filter(ess, brncntr != "No", facntr != "No", mocntr != "No")
+```
+
+\section{Recodiere fehlende Werte in NA}
+```{r}
+ess[ess == "Not applicable"] <- NA
+ess[ess == "Don't know"] <- NA
+ess[ess == "No answer"] <- NA
+ess[ess == "Not available"] <- NA
+ess[ess == "Refusal"] <- NA
+
+ess$agea[ess$agea == 999] <- NA
+ess$alcwknd[ess$alcwknd > 600] <- NA
+ess$wkhtot[ess$wkhtot > 120] <- NA
+ess$eduyrs[ess$eduyrs > 40] <- NA
+````
+
+\section{Generiere Xenophobie-Skala}
+```{r}
+ess <- mutate(ess, xeno = (as.numeric(imdetbs) + as.numeric(imdetmr) - 2) / 2)
+```
+
+\section{Generiere eine kategoriale Varibale die Ost-/Westdeutsche identifiziert}
+```{r}
+ess <- mutate(ess, ost = factor(intewde, levels(intewde)[c(2, 1)]))
+levels(ess$ost)[levels(ess$ost)=="Interview takes place in West Germany, West Berlin"] <- "West"
+levels(ess$ost)[levels(ess$ost)=="Interview takes place in East Germany, East Berlin"] <- "Ost"
+```
+
+\section{Behalte nur die Variablen die wir fuer die Uebungen und die Vorlesung brauchen}
+```{r}
+ess <- select(ess, idno, alcwknd, lvgptnea, wkhtot, ost, dscrsex, dfegcf, xeno, dfegcon, alcfreq, 
+                 agea, eduyrs, gndr, trstprt, imwbcnt)
+var.labels2 <- filter(var.labels, variable %in% names(ess))
+```
+
+\section{Zeigen, dass die Datensätze gleich sind}
+
+Prüfe, ob Anzahl der Zeilen und Spalten des in R aufbereitete Datensatz mit denen des in Stata aufbereiteten Datensatzes übereinstimmen:
+```{r}
+all(dim(ess) == dim(essStata))
+```
+
+Prüfe, ob die Werte der Datensätze übereinstimmen:
+```{r}
+variables <- names(ess)
+sapply(variables, function(varn) all(ess[,varn] == essStata[, varn], na.rm = TRUE))
+```

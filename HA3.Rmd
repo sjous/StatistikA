@@ -1,0 +1,127 @@
+---
+title: "Aufgabenblatt Zusammenhänge"
+author: "Sarah Thiesen"
+date: "09.05.2016"
+output:
+  html_document:
+    keep_md: yes
+---
+
+##Daten einlesen
+```{r}
+library(readstata13)
+mydata <- read.dta13("/home/sarah/Dropbox/Uni/StatA_OwnData_V14.dta", nonint.factors = TRUE, generate.factors = TRUE)
+var.labels <- data.frame(variable = names(mydata), description = attr(mydata,"var.labels"))
+```
+
+##Aufgabe 1
+
+Neue Variable erstellen, die zwischen Vater Akademiker/Vater kein Akademiker unterscheidet
+```{r, message = FALSE}
+library(dplyr)
+mydata <- mutate(mydata, v_akademiker = as.numeric(v_beruf) %in% c(4, 5))
+mydata$v_akademiker[is.na(mydata$v_beruf)] <- NA
+mydata$v_akademiker[as.numeric(mydata$v_beruf) == 6] <- NA
+```
+
+Kontingenztabelle
+```{r}
+mytbl <- with(mydata, table(ausland, v_akademiker))
+addmargins(mytbl)
+```
+
+Erstellen Sie eine Tabelle mit den dafür geeigneten relativen Häufigkeiten.
+```{r}
+myprop <- prop.table(mytbl, 2)
+addmargins(myprop)
+addmargins(prop.table(mytbl, 1))
+```
+
+Bestimmen Sie eine Prozentsatzdifferenz im Hinblick auf die Absicht ins Ausland zu gehen.
+```{r}
+library(scales)
+percent(myprop[2, 1] - myprop[2, 2])
+```
+
+Wie würde die Indifferenztabelle bei statistischer Unabhängigkeit aussehen?
+```{r}
+mychisq <- chisq.test(mytbl)
+mychisq$expected
+```
+
+Berechnen und interpretieren Sie $\chi^2$ und Cramér's V.
+```{r}
+mychisq
+cram <- as.numeric(sqrt(mychisq$statistic / sum(mytbl)))
+paste("Cramér's V: ", round(cram, digits = 4))
+```
+
+##Aufgabe 2
+
+Neue Variable erstellen: Mathe-Abneigung kategorisiert
+```{r, warning = FALSE}
+statmath.kat <- as.numeric(mydata$statmath)
+statmath.kat[as.numeric(statmath.kat) == 1] <- "niedrig"
+statmath.kat[as.numeric(statmath.kat) == 2] <- "niedrig"
+statmath.kat[as.numeric(statmath.kat) == 3] <- "mittel"
+statmath.kat[as.numeric(statmath.kat) == 4] <- "mittel"
+statmath.kat[as.numeric(statmath.kat) == 5] <- "mittel"
+statmath.kat[as.numeric(statmath.kat) == 6] <- "hoch"
+statmath.kat[as.numeric(statmath.kat) == 7] <- "hoch"
+statmath.kat <- factor(statmath.kat, levels(as.factor(statmath.kat))[c(3:1)])
+mydata <- cbind(mydata, statmath.kat)
+```
+
+Kontingenztabelle
+```{r}
+mytbl <- with(mydata, table(mathe_lk, statmath.kat))
+mytbl
+prop.table(mytbl, 2)
+```
+
+$\chi^2$-Test
+```{r}
+mychisq <- chisq.test(mytbl)
+mychisq
+cram <- as.numeric(sqrt(mychisq$statistic / sum(mytbl)))
+paste("Cramér's V: ", round(cram, digits = 4))
+```
+
+##Aufgabe 3
+
+Korrelationskoeffizienten von statmath und statzahl berechnen
+```{r}
+cor(as.numeric(mydata$statmath), as.numeric(mydata$statzahl), use = "complete.obs")
+```
+
+##Aufgabe 4
+
+Zusammenhang zwischen Arbeitsstunden im Semester (arbeit vl) und Arbeitsstunden in den Semesterferien (arbeit_vlf)
+
+###Streudiagramm mit plot()
+```{r}
+with(mydata, plot(arbeit_vlf, arbeit_vl))
+```
+
+###Streudiagramm mit lattice
+```{r}
+library(lattice)
+xyplot(arbeit_vl ~ arbeit_vlf, data = mydata, alpha = 0.5)
+```
+
+###Streudiagramm mit ggplot2 - qplot()
+```{r, warning = FALSE}
+library(ggplot2)
+qplot(arbeit_vlf, arbeit_vl, data = mydata, geom = "jitter")
+```
+
+###Streudiagramm mit ggplot2 - ggplot()
+```{r, warning = FALSE}
+m <- ggplot(mydata, aes(arbeit_vlf, arbeit_vl))
+m + geom_jitter(colour = "blue", alpha = 0.3, size = 2)
+```
+
+Korrelationskoeffizient
+```{r}
+with(mydata, cor(arbeit_vlf, arbeit_vl, use = "complete.obs"))
+```

@@ -1,0 +1,101 @@
+---
+title: "Aufgabenblatt zu Lage- und Streuungsmaßen"
+author: "Sarah Thiesen"
+date: "09.05.2016"
+output:
+  html_document:
+    keep_md: yes
+---
+
+##Daten einlesen
+```{r}
+library(readstata13)
+mydata <- read.dta13("/home/sarah/Dropbox/Uni/StatA_OwnData_V14.dta", nonint.factors = TRUE, generate.factors = TRUE)
+var.labels <- data.frame(variable = names(mydata), description = attr(mydata,"var.labels"))
+```
+
+##Aufgabe 1
+```{r}
+library(plyr)
+mytbl <- count(na.omit(mydata$v_beruf))
+myfreq <- data.frame(x = mytbl$x, freq = mytbl$freq, relative = mytbl$freq/sum(mytbl$freq), 
+                     cumulative = cumsum(mytbl$freq/sum(mytbl$freq)))
+myfreq
+
+library(scales)
+data.frame(x = myfreq$x, freq = myfreq$freq, relative = percent(myfreq$relative), cumulative = percent(myfreq$cumulative))
+```
+
+Wie groß ist der Anteil der Väter mit einer Lehre bzw. Berufsausbildung?
+```{r}
+percent(myfreq$relative[2])
+```
+
+Wie viel Prozent der Befragten haben einen Vater mit mindestens Fachhochschulabschluss?
+```{r}
+percent(sum(myfreq$relative[4:5]))
+```
+
+Wie groß ist der Anteil mit höchstens Meister- oder Techniker-Ausbildung?
+```{r}
+percent(myfreq$cumulative[3])
+```
+
+##Aufgabe 2
+
+Arithmetisches Mittel
+```{r}
+mean(as.numeric(mydata$statwichtig))
+```
+
+Median
+```{r}
+median(as.numeric(mydata$statwichtig))
+```
+
+Modus
+```{r}
+getmode <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+getmode(mydata$statwichtig)
+```
+
+Range
+```{r}
+max(as.numeric(mydata$statwichtig)) - min(as.numeric(mydata$statwichtig))
+```
+
+Varianz
+```{r}
+var(as.numeric(mydata$statwichtig), na.rm = TRUE)
+```
+
+Standardabweichung
+```{r}
+sd(as.numeric(mydata$statwichtig))
+```
+
+##Aufgabe 4
+
+Data frame erstellen
+```{r}
+rent <- data.frame(id = c(18, 25, 45, 49, 57, 88, 100, 174), miete = c(350, 390, 330, 290, 300, 270, 280, 360))
+```
+
+Erstes Quartil
+```{r}
+quantile(rent$miete, probs = 0.25)
+```
+
+Median
+```{r}
+median(rent$miete, na.rm = TRUE)
+```
+
+Arithmetisches Mittel
+```{r}
+mean(rent$miete, na.rm = TRUE)
+```
