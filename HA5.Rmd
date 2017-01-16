@@ -1,0 +1,40 @@
+---
+title: "Aufgabenblatt Multivariable Regression"
+author: "Sarah Thiesen"
+date: "20.06.2016"
+output: 
+  html_document:
+    keep_md: true
+---
+
+##Daten einlesen
+```{r, message=FALSE}
+library(readstata13)
+mydata <- read.dta13("/home/sarah/Uni/StatA_OwnData_V14.dta", nonint.factors = TRUE, generate.factors = TRUE)
+var.labels <- data.frame(variable = names(mydata), description = attr(mydata,"var.labels"))
+
+library(dplyr)
+mydata <- mutate(mydata, weiblich = mydata$geschlecht=="1. weiblich", 
+                 num_statint = as.numeric(statint), 
+                 num_math = as.numeric(statmath),
+                 lk = mydata$mathe_lk == "1. Ja",
+                 num_zahl = as.numeric(statzahl))
+```
+
+## Aufgabe 1
+
+a) Schätzen Sie nun selbst ein Regressionsmodell mit allen Teilnehmern der Statistikveranstaltung. Sie sind davon überzeugt, dass nicht nur das Geschlecht einen Einfluss auf den Wunsch, im späteren Berufsleben nichts mit Zahlen zu tun haben zu wollen, sondern auch das generelle Statistikinteresse, die Abneigung gegen Mathematik und die Tatsache, einen Mathe-LK besucht zu haben.
+
+```{r}
+fit1 <- lm(num_zahl ~ weiblich + num_statint + num_math + lk, data = mydata)
+summary(fit1)
+```
+
+b) Berufliche Bildung des Vaters
+
+```{r}
+fit2 <- lm(num_zahl ~ weiblich + num_statint + num_math + lk + v_beruf, data = mydata)
+summary(fit2)
+```
+
+

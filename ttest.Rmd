@@ -1,0 +1,58 @@
+---
+title: "Hypothesentests"
+author: "Sarah Thiesen"
+date: "29.07.2016"
+output: 
+  html_document:
+    keep_md: true
+---
+
+##Daten einlesen
+```{r, message=FALSE}
+library(readstata13)
+mydata <- read.dta13("/home/sarah/Uni/StatA_OwnData_V14.dta", nonint.factors = TRUE, generate.factors = TRUE)
+var.labels <- data.frame(variable = names(mydata), description = attr(mydata,"var.labels"))
+
+library(dplyr)
+mydata <- mutate(mydata, weiblich = mydata$geschlecht=="1. weiblich", 
+                 num_statint = as.numeric(statint), 
+                 num_math = as.numeric(statmath),
+                 lk = mydata$mathe_lk == "1. Ja",
+                 num_zahl = as.numeric(statzahl))
+```
+
+##Histogramm Note der Hochschulzugangsberechtigung
+```{r, message = FALSE}
+library(ggplot2)
+h <- ggplot(mydata, aes(hzbnote))
+h + geom_histogram(binwidth = 0.1, na.rm = TRUE, col = "black", aes(fill=..count..)) + scale_fill_gradient("Anzahl", low = "blue", high = "red") + labs(x = "Note der Hochschulzugangsberechtigung", y = "Anzahl") + xlim(c(1, 4))
+```
+  
+##Einseitiger Hypothesentest: Note der HZB
+
+H<sub>0</sub>: Die durchschnittliche Note der Hochschulzugangsberechtigung liegt bei 2.0.  
+H<sub>1</sub>: Die durchnittliche Note der Hochschulzugangsberechtigung ist höher als 2.0.
+
+```{r}
+t.test(mydata$hzbnote, mu = 2, alternative = "two.sided")
+```
+
+-> Die H_0 kann verworfen werden.
+  
+  
+##Zweiseitiger Hypothesentest: Note der HZB abhängig von Geschlecht
+
+H<sub>0</sub>: Die durchschnittliche Note der Hochschulzugangsberechtigung von Männern und Frauen ist gleich.  
+H<sub>1</sub>: Die durchschnittliche Note der Hochschulzugangsberechtigung von Männern und Frauen ist unterschiedlich.
+
+F-Test:
+```{r}
+var.test(mydata$hzbnote ~ mydata$geschlecht)
+```
+-> Varianzheterogenität kann nicht ausgeschlossen werden
+
+```{r}
+t.test(mydata$hzbnote ~ mydata$geschlecht, alternative = "two.sided", var.equal = FALSE)
+```
+
+-> Die H_0 kann nicht abgelehnt werden
