@@ -76,3 +76,5 @@ qui log c
 
 markdoc ha2stata, replace
 markdoc ha2stata, replace export(html)
+markdoc ha2stata, replace export(md)
+
