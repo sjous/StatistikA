@@ -4,25 +4,6 @@ set more off
 qui log using ha2stata, replace
 
 /***
-<!doctype html>
-<html>
-<head>
-<meta charset="utf-8">
-<title>Statistik A: &Uuml;bung 2</title>
-<style>
-	.main-container {
-		max-width: 940px;
-		margin-left: auto;
-		margin-right: auto;
-	}
-	body {
-		font-family: "sans-serif";
-	}
-}
-</style>
-</head>
-<body>
-<div class="container-fluid main-container">
 <h1>&Uuml;bung 2: Lage- und Streuungsma&szlig;e</h1>
 Sarah Thiesen<br>
 29.01.2017
